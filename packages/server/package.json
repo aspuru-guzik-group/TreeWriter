@@ -1,0 +1,52 @@
+{
+  "name": "@forest/server",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "node build.js"
+  },
+  "nodemonConfig": {
+    "ext": "js,jsx,json",
+    "execMap": {
+      "jsx": "node -r @babel/register"
+    }
+  },
+  "dependencies": {
+    "@forest/issue-tracker-server": "workspace:*",
+    "@forest/schema": "workspace:*",
+    "@supabase/supabase-js": "^2.50.5",
+    "@types/pg": "^8.15.4",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.1",
+    "ioredis": "^5.6.1",
+    "axios": "^1.11.0",
+    "cheerio": "^1.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "lib0": "^0.2.98",
+    "lodash.debounce": "^4.0.8",
+    "minimist": "^1.2.8",
+    "minio": "^8.0.5",
+    "mongodb": "^6.16.0",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.16.3",
+    "ws": "^8.18.0",
+    "y-mongodb-provider": "^0.2.1",
+    "y-protocols": "^1.0.6",
+    "yjs": "13.6.27",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/minimist": "^1.2.5",
+    "@types/multer": "^1.4.7",
+    "@types/ws": "^8.18.1",
+    "esbuild": "^0.24.0",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2"
+  }
+}

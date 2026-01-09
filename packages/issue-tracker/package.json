@@ -1,0 +1,40 @@
+{
+  "name": "@forest/issue-tracker",
+  "private": true,
+  "version": "0.0.0",
+  "main": "src/index.tsx",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^7.2.0",
+    "@mui/lab": "7.0.0-beta.14",
+    "@mui/material": "^7.2.0",
+    "@mui/system": "^5.15.20",
+    "@mui/x-tree-view": "^7.26.0",
+    "@mui/x-data-grid": "^7.7.0",
+    "@mui/x-date-pickers": "^8.7.0",
+    "date-fns": "^4.1.0",
+    "axios": "^1.11.0",
+    "react": "^19.1.0",
+    "jotai": "^2.10.3",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.3",
+    "@forest/user-system": "workspace:*",
+    "@forest/schema": "workspace:*"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.5.2",
+    "eslint": "^9.29.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.2.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.1",
+    "vite": "^7.0.0"
+  }
+}

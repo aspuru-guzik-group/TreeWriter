@@ -1,0 +1,384 @@
+import React, {useState} from 'react';
+import {
+    Box,
+    Button,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    FormControlLabel,
+    FormLabel,
+    Radio,
+    RadioGroup,
+    Typography
+} from '@mui/material';
+import {NodeM} from "@forest/schema";
+import {EditorNodeTypeM} from '@forest/node-type-editor/src';
+import {extractExportContent} from '@forest/node-type-editor/src/editor/Extensions/exportHelpers';
+import { getCitationBibtex, formatAPAfromBibtex } from './generateReferences';
+
+interface ReferenceIndexButtonProps {
+    nodes: Array<{ node: NodeM, level: number }>
+}
+
+interface ContentChange {
+    node: NodeM;
+    originalContent: string;
+    newContent: string;
+    fullNewContent?: string; // Store the full content to apply
+    nodeTitle: string;
+}
+
+export default function ReferenceIndexButton({nodes}: ReferenceIndexButtonProps) {
+    const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [style, setStyle] = useState<'index' | 'apa'>('index');
+    const [confirmationOpen, setConfirmationOpen] = useState(false);
+    const [currentChange, setCurrentChange] = useState<ContentChange | null>(null);
+    const [pendingChanges, setPendingChanges] = useState<ContentChange[]>([]);
+    const [currentChangeIndex, setCurrentChangeIndex] = useState(0);
+
+
+    // Helper function to check if content has export divs
+    const hasExportContent = (htmlContent: string): boolean => {
+        return extractExportContent(htmlContent).trim().length > 0;
+    };
+
+    // Helper function to check if a node is terminal (has no children)
+    const isTerminalNode = (node: NodeM): boolean => {
+        const children = node.children().toJSON();
+        const childrenValue = Array.isArray(children) ? children : [];
+        return childrenValue.length === 0;
+    };
+
+    const processReferences = async () => {
+        setLoading(true);
+        try {
+            let linkIndex = 1;
+            const citationMap = new Map<string, { index: number; citation: string }>();
+            const changes: ContentChange[] = [];
+
+            for (const {node} of nodes) {
+                // Get current content - following same pattern as LinearView
+                const fullContent = EditorNodeTypeM.getEditorContent(node);
+                const isTerminal = isTerminalNode(node);
+                
+                let currentContent: string;
+                if (isTerminal) {
+                    // Terminal node: if has export, show only export; otherwise show everything
+                    if (hasExportContent(fullContent)) {
+                        currentContent = extractExportContent(fullContent);
+                    } else {
+                        currentContent = fullContent;
+                    }
+                } else {
+                    // Non-terminal node: show only export content if it exists
+                    currentContent = extractExportContent(fullContent);
+                }
+
+                // Skip if no content to process
+                if (!currentContent || currentContent.trim().length === 0) continue;
+
+                // Parse and replace links
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(currentContent, 'text/html');
+                const links = doc.querySelectorAll('a[href]');
+
+                let hasChanges = false;
+
+                for (const link of links) {
+                    const href = link.getAttribute('href')?.trim();
+                    if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                        if (style === 'index') {
+                            // Get citation data to determine identity
+                            const citationData = await getCitationBibtex(href);
+                            if (citationData) {
+                                const identity = formatAPAfromBibtex(citationData)
+
+                                // Check if we've seen this citation before
+                                if (citationMap.has(identity)) {
+                                    // Reuse existing index
+                                    const existingIndex = citationMap.get(identity)!.index;
+                                    link.textContent = `${existingIndex}`;
+                                } else {
+                                    // New citation, assign new index
+                                    citationMap.set(identity, {
+                                        index: linkIndex,
+                                        citation: identity
+                                    });
+                                    link.textContent = `${linkIndex}`;
+                                    linkIndex++;
+                                }
+                            } else {
+                                // Fallback for failed citations
+                                link.textContent = `${linkIndex}`;
+                                linkIndex++;
+                            }
+                        } else if (style === 'apa') {
+                            const citationData = await getCitationBibtex(href);
+                            if (citationData) {
+                                const identity = formatAPAfromBibtex(citationData);
+
+                                // For APA, we can reuse the same formatted citation
+                                if (citationMap.has(identity)) {
+                                    const existingCitation = citationMap.get(identity)!.citation;
+                                    link.textContent = existingCitation;
+                                } else {
+                                    const formattedCitation = identity
+                                    citationMap.set(identity, {
+                                        index: linkIndex,
+                                        citation: formattedCitation
+                                    });
+                                    link.textContent = formattedCitation;
+                                    linkIndex++; // Still increment for potential mixed usage
+                                }
+                            } else {
+                                link.textContent = `Source, n.d.`;
+                            }
+                        }
+                        hasChanges = true;
+                    }
+                }
+
+                // Store changes for confirmation only if content actually changed
+                if (hasChanges) {
+                    const modifiedContent = doc.body.innerHTML;
+                    
+                    // Reconstruct the full content with the modified export section
+                    let newFullContent: string;
+                    if (isTerminal) {
+                        if (hasExportContent(fullContent)) {
+                            // Terminal node with export: replace only the export content in the full content
+                            const exportRegex = /<div[^>]*class="[^"]*export[^"]*"[^>]*>[\s\S]*?<\/div>/g;
+                            const wrappedModifiedContent = `<div class="export">${modifiedContent}</div>`;
+                            newFullContent = fullContent.replace(exportRegex, wrappedModifiedContent);
+                        } else {
+                            // Terminal node without export: replace entire content
+                            newFullContent = modifiedContent;
+                        }
+                    } else {
+                        // Non-terminal node: replace only the export content within the full content
+                        const exportRegex = /<div[^>]*class="[^"]*export[^"]*"[^>]*>[\s\S]*?<\/div>/g;
+                        const wrappedModifiedContent = `<div class="export">${modifiedContent}</div>`;
+                        newFullContent = fullContent.replace(exportRegex, wrappedModifiedContent);
+                    }
+
+                    // Only add to changes if the content is actually different
+                    if (newFullContent.trim() !== fullContent.trim()) {
+                        changes.push({
+                            node,
+                            originalContent: currentContent, // Show the relevant part in UI
+                            newContent: modifiedContent, // Show the relevant modified part in UI
+                            fullNewContent: newFullContent, // Store the full content to apply
+                            nodeTitle: node.title()
+                        });
+                    }
+                }
+            }
+
+            // Show confirmation dialog one by one if there are changes
+            if (changes.length > 0) {
+                setPendingChanges(changes);
+                setCurrentChangeIndex(0);
+                setCurrentChange(changes[0]);
+                setConfirmationOpen(true);
+            } else {
+                // No changes detected - show user feedback
+                alert('No changes were made. The document may already have the selected citation format or contain no links to convert.');
+            }
+
+        } catch (error) {
+            console.error('Error processing references:', error);
+        } finally {
+            setLoading(false);
+            setOpen(false);
+        }
+    };
+
+    const applyCurrentChange = () => {
+        try {
+            if (currentChange) {
+                // Use fullNewContent if available (for proper export handling), otherwise use newContent
+                const contentToApply = currentChange.fullNewContent || currentChange.newContent;
+                EditorNodeTypeM.setEditorContent(currentChange.node, contentToApply);
+            }
+
+            // Move to next change or close if done
+            const nextIndex = currentChangeIndex + 1;
+            if (nextIndex < pendingChanges.length) {
+                setCurrentChangeIndex(nextIndex);
+                setCurrentChange(pendingChanges[nextIndex]);
+            } else {
+                // All changes processed
+                setConfirmationOpen(false);
+                setPendingChanges([]);
+                setCurrentChange(null);
+                setCurrentChangeIndex(0);
+            }
+        } catch (error) {
+            console.error('Error applying change:', error);
+        }
+    };
+
+    const skipCurrentChange = () => {
+        // Move to next change or close if done
+        const nextIndex = currentChangeIndex + 1;
+        if (nextIndex < pendingChanges.length) {
+            setCurrentChangeIndex(nextIndex);
+            setCurrentChange(pendingChanges[nextIndex]);
+        } else {
+            // All changes processed
+            setConfirmationOpen(false);
+            setPendingChanges([]);
+            setCurrentChange(null);
+            setCurrentChangeIndex(0);
+        }
+    };
+
+    const cancelAllChanges = () => {
+        setConfirmationOpen(false);
+        setPendingChanges([]);
+        setCurrentChange(null);
+        setCurrentChangeIndex(0);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    return (
+        <>
+            <Button
+                variant="outlined"
+                onClick={() => setOpen(true)}
+                size="small"
+                sx={{mb: 2}}
+            >
+                Reference Index
+            </Button>
+
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>Convert Links to In-Text Citations</DialogTitle>
+                <DialogContent>
+                    {loading ? (
+                        <Box display="flex" justifyContent="center" alignItems="center" p={3}>
+                            <CircularProgress/>
+                            <Typography variant="body2" sx={{ml: 2}}>
+                                Processing references...
+                            </Typography>
+                        </Box>
+                    ) : (
+                        <Box>
+                            <FormControl component="fieldset" sx={{mb: 3}}>
+                                <FormLabel component="legend">Select citation style:</FormLabel>
+                                <RadioGroup
+                                    value={style}
+                                    onChange={(e) => setStyle(e.target.value as 'index' | 'apa')}
+                                >
+                                    <FormControlLabel
+                                        value="index"
+                                        control={<Radio/>}
+                                        label="Numbered references ([1], [2], [3])"
+                                    />
+                                    <FormControlLabel
+                                        value="apa"
+                                        control={<Radio/>}
+                                        label="APA style ((Smith, 2023), (Jones & Brown, 2022))"
+                                    />
+                                </RadioGroup>
+                            </FormControl>
+
+                            <Typography variant="body2" color="text.secondary">
+                                This will replace all links in the document with the selected citation format.
+                                {style === 'apa' && ' Note: APA citations will fetch author and year information from each URL.'}
+                            </Typography>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button onClick={processReferences} variant="contained" disabled={loading}>
+                        {style === 'index' ? 'Convert to Numbers' : 'Convert to APA'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Confirmation Dialog - One by One */}
+            <Dialog
+                open={confirmationOpen}
+                onClose={cancelAllChanges}
+                maxWidth="lg"
+                fullWidth
+            >
+                <DialogTitle>
+                    Confirm Change ({currentChangeIndex + 1} of {pendingChanges.length})
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2" color="text.secondary" sx={{mb: 3}}>
+                        Review this change before applying it. The left column shows the original content, and the right
+                        column shows the content after applying {style === 'index' ? 'numbered' : 'APA'} citations.
+                    </Typography>
+
+                    {currentChange && (
+                        <Box sx={{mb: 4}}>
+                            <Typography variant="h6" sx={{mb: 2}}>
+                                {currentChange.nodeTitle}
+                            </Typography>
+                            <Box sx={{display: 'flex', gap: 2}}>
+                                <Box sx={{flex: 1}}>
+                                    <Typography variant="subtitle2" sx={{mb: 1, fontWeight: 'bold'}}>
+                                        Before:
+                                    </Typography>
+                                    <Box
+                                        sx={{
+                                            border: 1,
+                                            borderColor: 'divider',
+                                            borderRadius: 1,
+                                            p: 2,
+                                            maxHeight: 300,
+                                            overflow: 'auto',
+                                            backgroundColor: 'grey.50'
+                                        }}
+                                        dangerouslySetInnerHTML={{__html: currentChange.originalContent}}
+                                    />
+                                </Box>
+                                <Box sx={{flex: 1}}>
+                                    <Typography variant="subtitle2" sx={{mb: 1, fontWeight: 'bold'}}>
+                                        After:
+                                    </Typography>
+                                    <Box
+                                        sx={{
+                                            border: 1,
+                                            borderColor: 'divider',
+                                            borderRadius: 1,
+                                            p: 2,
+                                            maxHeight: 300,
+                                            overflow: 'auto',
+                                            backgroundColor: 'success.light',
+                                            color: 'success.contrastText'
+                                        }}
+                                        dangerouslySetInnerHTML={{__html: currentChange.newContent}}
+                                    />
+                                </Box>
+                            </Box>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={cancelAllChanges}>Cancel All</Button>
+                    <Button onClick={skipCurrentChange}>Skip This</Button>
+                    <Button onClick={applyCurrentChange} variant="contained" color="primary">
+                        Apply This Change
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
+    );
+}

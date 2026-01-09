@@ -1,0 +1,30 @@
+{
+  "name": "@forest/testkits",
+  "version": "1.0.0",
+  "description": "Test applications for Forest project",
+  "main": "index.js",
+  "scripts": {
+    "create": "ts-node scripts/newTree.ts",
+    "duplicate": "ts-node scripts/duplicateTree.ts"
+  },
+  "dependencies": {
+    "@forest/node-type-reader": "workspace:*",
+    "axios": "^1.6.0",
+    "dotenv": "^16.6.1",
+    "js-yaml": "^4.1.0",
+    "uuid": "^9.0.1",
+    "yjs": "^13.6.27",
+    "react": "^19.1.0",
+    "@mui/icons-material": "^7.2.0",
+    "mongodb": "^6.18.0"
+  },
+  "devDependencies": {
+    "@forest/schema": "workspace:*",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.8.3"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

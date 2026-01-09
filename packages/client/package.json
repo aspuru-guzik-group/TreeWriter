@@ -1,0 +1,52 @@
+{
+  "name": "@forest/client",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "vite --port=39999 --host",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@citation-js/core": "^0.7.18",
+    "@citation-js/plugin-bibtex": "^0.7.18",
+    "@citation-js/plugin-csl": "^0.7.18",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@forest/client": "workspace:*",
+    "@forest/issue-tracker": "workspace:*",
+    "@forest/node-components": "workspace:*",
+    "@forest/node-type-editor": "workspace:*",
+    "@forest/node-type-embedded": "workspace:*",
+    "@forest/node-type-reader": "workspace:*",
+    "@forest/node-types": "workspace:*",
+    "@forest/schema": "workspace:*",
+    "@forest/user-panel": "workspace:*",
+    "@forest/user-system": "workspace:*",
+    "@mui/icons-material": "^7.2.0",
+    "@mui/lab": "7.0.0-beta.14",
+    "@mui/material": "^7.2.0",
+    "@mui/system": "^5.15.20",
+    "@mui/x-data-grid": "^7.29.8",
+    "@mui/x-tree-view": "^7.26.0",
+    "@supabase/supabase-js": "^2.50.5",
+    "d3-hierarchy": "^3.1.2",
+    "jotai": "^2.10.3",
+    "jotai-effect": "^2.0.4",
+    "react": "^19.1.0",
+    "react-complex-tree": "^2.6.0",
+    "react-dom": "^19.1.0",
+    "react-jsx-parser": "^1.29.0",
+    "react-router": "^7.6.2",
+    "reactflow": "^11.11.4",
+    "uuid": "^9.0.1",
+    "yjs": "^13.6.27"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "sass": "^1.89.1",
+    "vite": "^7.0.0"
+  }
+}

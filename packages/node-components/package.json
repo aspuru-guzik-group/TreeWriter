@@ -1,0 +1,23 @@
+{
+  "name": "@forest/node-components",
+  "version": "1.0.0",
+  "main": "src/index.tsx",
+  "scripts": {
+  },
+  "dependencies": {
+    "@mui/icons-material": "^7.2.0",
+    "@mui/material": "^7.2.0",
+    "jotai": "^2.10.3",
+    "react": "^19.1.0",
+    "react-code-blocks": "^0.1.6",
+    "react-latex-next": "^3.0.0",
+    "react-medium-image-zoom": "^5.2.14",
+    "yjs": "^13.6.27",
+    "react-syntax-highlighter": "^15.6.1",
+    "@forest/schema": "workspace:*",
+    "@forest/user-system": "workspace:*",
+    "@forest/client": "workspace:*",
+    "react-jsx-parser": "^1.29.0",
+    "@mui/lab": "7.0.0-beta.14"
+  }
+}
