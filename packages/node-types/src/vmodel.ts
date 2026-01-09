@@ -6,7 +6,6 @@ import {SupportedNodeTypesVM} from "@forest/schema/src/viewModel";
 // @ts-ignore
 const typeModules = {
     "CustomNodeType": () => import("@forest/node-components").then(m => m.CustomNodeTypeVM),
-    "MongoDataGridNodeType": () => import("@forest/node-type-mongo-datagrid").then(m => m.MongoDataGridNodeTypeVM),
     "EditorNodeType": async () => EditorNodeTypeVM,
     "ReaderNodeType": async () => ReaderNodeTypeVM,
     "EmbeddedNodeType": async () => EmbeddedNodeTypeVM,
