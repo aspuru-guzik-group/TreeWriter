@@ -1,6 +1,10 @@
-# TreeWriter
+# TreeWriter: AI-Assisted Hierarchical Planning and Writing for Long-Form Documents
 
-A Tree-based workspace
+The source code for https://arxiv.org/abs/2601.12740
+
+You can create your own document and try out TreeWriter at https://treer.ai
+
+![img.png](img.png)
 
 ## Development
 
