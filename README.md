@@ -2,7 +2,7 @@
 
 The source code for https://arxiv.org/abs/2601.12740
 
-You can create your own document and try out TreeWriter at https://treer.ai
+Online demo: You can create your own document and try out TreeWriter at https://treer.ai
 
 ![img.png](img.png)
 
@@ -27,8 +27,6 @@ Then, you can start the dev server with:
 pnpm dev
 ```
 
-Then, you can run the tests in the `test` folder
-
 Minimal MongoDB install (macOS Homebrew example):
 ```bash
 brew tap mongodb/brew
@@ -38,5 +36,4 @@ brew install mongodb-community@7.0
 to run mongodb (path depends on yourself)
 ```bash
 mongod --dbpath /usr/local/var/mongodb
-
 ```
