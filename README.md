@@ -3,6 +3,7 @@
 The source code for https://arxiv.org/abs/2601.12740
 
 Online demo: You can create your own document and try out TreeWriter at https://treer.ai
+
 Note: Arc browser need to disable "Experimental QUIC protocol" or use Chrome.
 
 ![img.png](img.png)
