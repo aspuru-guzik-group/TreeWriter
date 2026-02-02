@@ -2,7 +2,9 @@
 
 The source code for https://arxiv.org/abs/2601.12740
 
-Online demo: You can create your own document and try out TreeWriter at https://treer.ai
+[Demo video](https://drive.google.com/file/d/1R-X6JfiRC8kuWnVFCEL_waCfzn89Hgyt/view?usp=sharing)
+
+Live demo: You can create your own document and try out TreeWriter at https://treer.ai
 
 Note: Arc browser may not work. Please use Chrome.
 
